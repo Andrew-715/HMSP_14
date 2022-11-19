@@ -4,45 +4,48 @@ import sqlite3
 Создаём функцию с SQL-запросом и выводим название, страну, год релиза, жанр
 и описание фильма.
 """
-def search_by_name():
+
+
+def convert_tuple_to_list_of_dicts(result_all, keys):
+    """
+    С помощью циклов for добавляем необходимые значения к списку ключей
+    и добавляем это в список result.
+    """
+    result = []
+
+    for result_row in result_all:
+        result.append({keys[i]: result_row[i] for i in range(len(keys))})
+
+    return result
+
+
+def search_by_name(movie_name):
     with sqlite3.connect('netflix.db') as connection:
         cursor = connection.cursor()
 
-        querly = """SELECT title, country, release_year, listed_in, description
+        query = """SELECT title, country, release_year, listed_in, description
                  FROM netflix
-                 WHERE release_year = 2021
+                 WHERE title LIKE :title
                  AND type = 'Movie'
-                 AND country !=''
+                 LIMIT 1
         """
 
-        cursor.execute(querly)
+        # Выполняем запрос
+        cursor.execute(query, {"title": movie_name})
         result_all = cursor.fetchall()
-        """
-        Прописываем список ключей, которые нам нужны.
-        """
-        keys = [
-            "title",
-            "country",
-            "release_year",
-            "listed_in",
-            "description"
-        ]
-        """
-        Создаём пустой список, который будет в себе содержать ключи и значения.
-        """
-        result = []
-        """
-        С помощью циклов for добавляем необходимые значения к списку ключей
-        и добавляем это в список result.
-        """
-        for result_row in result_all:
-            result.append({keys[i]: result_row[i] for i in range(len(keys))})
 
-        return result
+        # Прописываем список ключей, которые нам нужны.
+        keys = ["title",  "country", "release_year", "listed_in", "description" ]
+
+        # Превращаем кортежи в список словарей
+        return convert_tuple_to_list_of_dicts(result_all, keys)[0]
+
 
 """
 Создаём функцию с SQL-запросом и выводим только название и год выпуска.
 """
+
+
 def search_by_release_year():
     with sqlite3.connect('netflix.db') as connection:
         cursor = connection.cursor()
@@ -75,9 +78,12 @@ def search_by_release_year():
 
         return result
 
+
 """
 Создаём функцию с SQL-запросом и выводим название, рейтинг и описание фильма.
 """
+
+
 def movies_rating():
     with sqlite3.connect('netflix.db') as connection:
         cursor = connection.cursor()
@@ -113,9 +119,12 @@ def movies_rating():
 
         return result
 
+
 """
 Cоздаём функцию для вывода данных о фильме по его названию.
 """
+
+
 def title_dict(title):
     """
     :param title: здесь указываем название фильма
@@ -135,9 +144,12 @@ def title_dict(title):
         if title in result.values():
             return result
 
+
 """
 Создаём функцию для вывода списка фильмов по году выпуска.
 """
+
+
 def title_years(year_1, year_2):
     """
     :param year_1: в этой переменной указываем С какого года будет поиск
@@ -150,11 +162,10 @@ def title_years(year_1, year_2):
     """
     result = {}
 
-
     for d in list_dict:
         result.update(d)
         if year_1 or year_2 in result.values():
             return result
 
 
-print(title_years(2006, 2010))
+
